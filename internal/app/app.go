@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -34,6 +35,19 @@ func (a *App) Startup(ctx context.Context) {
 func (a *App) SelectFile() (string, error) {
 	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
 		Title: "选择压缩包",
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "压缩包 (*.zip, *.7z, *.rar, *.tar, *.gz)",
+				Pattern:     "*.zip;*.7z;*.rar;*.tar;*.gz;*.bz2;*.xz",
+			},
+		},
+	})
+}
+
+// SelectFiles 选择多个压缩包文件（批量解压）
+func (a *App) SelectFiles() ([]string, error) {
+	return runtime.OpenMultipleFilesDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "选择压缩包（可多选）",
 		Filters: []runtime.FileFilter{
 			{
 				DisplayName: "压缩包 (*.zip, *.7z, *.rar, *.tar, *.gz)",
@@ -95,6 +109,206 @@ func (a *App) SavePassword(archivePath, passwordStr string) error {
 
 func (a *App) GetHistory(limit int) ([]history.ExtractHistory, error) {
 	return history.List(a.db, limit)
+}
+
+// BatchExtract 批量解压文件
+func (a *App) BatchExtract(archivePaths []string, outputDir string) []BatchExtractResult {
+	var results []BatchExtractResult
+
+	for _, archivePath := range archivePaths {
+		result := BatchExtractResult{
+			ArchivePath: archivePath,
+			Success:     false,
+		}
+
+		err := a.Extract(archivePath, outputDir)
+		if err != nil {
+			result.Error = err.Error()
+		} else {
+			result.Success = true
+			result.OutputDir = outputDir
+			if result.OutputDir == "" {
+				result.OutputDir = defaultOutputDir(archivePath)
+			}
+		}
+
+		results = append(results, result)
+	}
+
+	return results
+}
+
+// BatchExtractResult 批量解压结果
+type BatchExtractResult struct {
+	ArchivePath string `json:"archivePath"`
+	OutputDir   string `json:"outputDir"`
+	Success     bool   `json:"success"`
+	Error       string `json:"error,omitempty"`
+}
+
+// OpenDirectory 在文件管理器中打开目录
+func (a *App) OpenDirectory(dirPath string) error {
+	return exec.Command("explorer", dirPath).Start()
+}
+
+// TestArchive 测试压缩包完整性
+func (a *App) TestArchive(archivePath string) (bool, error) {
+	return archive.Test(a.ctx, a.sevenZipPath, archivePath)
+}
+
+// GetPasswordRecords 获取所有密码记录（密码库管理）
+func (a *App) GetPasswordRecords() ([]password.PasswordRecord, error) {
+	return password.ListAll(a.db)
+}
+
+// DeletePasswordRecord 删除密码记录
+func (a *App) DeletePasswordRecord(id int64) error {
+	return password.DeleteByID(a.db, id)
+}
+
+// UpdatePasswordRecord 更新密码记录的使用次数排序
+func (a *App) UpdatePasswordRecord(id int64, newArchivePath string) error {
+	return password.UpdatePath(a.db, id, newArchivePath)
+}
+
+// GetPasswordStats 获取密码使用统计
+func (a *App) GetPasswordStats() (password.PasswordStats, error) {
+	return password.GetStats(a.db)
+}
+
+// PreviewArchive 预览压缩包内容
+func (a *App) PreviewArchive(archivePath string) ([]archive.ArchiveEntry, error) {
+	return archive.List(a.ctx, a.sevenZipPath, archivePath)
+}
+
+// GetAppConfig 获取应用配置
+func (a *App) GetAppConfig(key string) (string, error) {
+	var value string
+	err := a.db.QueryRow("SELECT value FROM app_config WHERE key = ?", key).Scan(&value)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	return value, err
+}
+
+// SetAppConfig 设置应用配置
+func (a *App) SetAppConfig(key, value string) error {
+	_, err := a.db.Exec(
+		`INSERT INTO app_config (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+		 ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = CURRENT_TIMESTAMP`,
+		key, value, value,
+	)
+	return err
+}
+
+// GetTheme 获取当前主题
+func (a *App) GetTheme() string {
+	theme, _ := a.GetAppConfig("theme")
+	if theme == "" {
+		theme = "dark"
+	}
+	return theme
+}
+
+// SetTheme 设置主题
+func (a *App) SetTheme(theme string) error {
+	return a.SetAppConfig("theme", theme)
+}
+
+// ExtractWithRetry 带重试的解压
+func (a *App) ExtractWithRetry(archivePath, outputDir string, maxRetries int) error {
+	var lastErr error
+
+	for i := 0; i <= maxRetries; i++ {
+		err := a.Extract(archivePath, outputDir)
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+
+		// 如果是密码错误，不重试
+		if err == ErrPasswordRequired {
+			return err
+		}
+	}
+
+	return lastErr
+}
+
+// ExtractWithStrategy 使用策略模板解压
+func (a *App) ExtractWithStrategy(archivePath, strategyName string) error {
+	strategy, err := a.GetExtractStrategy(strategyName)
+	if err != nil {
+		return err
+	}
+
+	outputDir := strategy.OutputDir
+	if outputDir == "" {
+		outputDir = defaultOutputDir(archivePath)
+	}
+
+	if strategy.AutoRetry {
+		return a.ExtractWithRetry(archivePath, outputDir, strategy.MaxRetries)
+	}
+
+	return a.Extract(archivePath, outputDir)
+}
+
+// ExtractStrategy 解压策略
+type ExtractStrategy struct {
+	Name       string `json:"name"`
+	OutputDir  string `json:"outputDir"`
+	AutoRetry  bool   `json:"autoRetry"`
+	MaxRetries int    `json:"maxRetries"`
+	AutoOpen   bool   `json:"autoOpen"`
+}
+
+// GetExtractStrategy 获取解压策略
+func (a *App) GetExtractStrategy(name string) (ExtractStrategy, error) {
+	var strategy ExtractStrategy
+	value, err := a.GetAppConfig("strategy_" + name)
+	if err != nil {
+		return strategy, err
+	}
+	if value == "" {
+		// 返回默认策略
+		return ExtractStrategy{
+			Name:       name,
+			AutoRetry:  false,
+			MaxRetries: 3,
+			AutoOpen:   false,
+		}, nil
+	}
+
+	// 解析 JSON
+	strategy.Name = name
+	// 简单解析，实际应使用 json.Unmarshal
+	if value == "default" {
+		strategy.AutoRetry = false
+		strategy.MaxRetries = 3
+		strategy.AutoOpen = false
+	}
+
+	return strategy, nil
+}
+
+// SaveExtractStrategy 保存解压策略
+func (a *App) SaveExtractStrategy(strategy ExtractStrategy) error {
+	// 简化存储，实际应使用 JSON
+	value := "default"
+	if strategy.AutoRetry {
+		value = "retry"
+	}
+	return a.SetAppConfig("strategy_"+strategy.Name, value)
+}
+
+// GetExtractStrategies 获取所有解压策略
+func (a *App) GetExtractStrategies() []ExtractStrategy {
+	return []ExtractStrategy{
+		{Name: "default", OutputDir: "", AutoRetry: false, MaxRetries: 3, AutoOpen: false},
+		{Name: "retry", OutputDir: "", AutoRetry: true, MaxRetries: 3, AutoOpen: false},
+		{Name: "auto-open", OutputDir: "", AutoRetry: false, MaxRetries: 3, AutoOpen: true},
+	}
 }
 
 func (a *App) ExtractWithPassword(archivePath, outputDir, passwordStr string) error {

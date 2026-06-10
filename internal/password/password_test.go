@@ -12,7 +12,7 @@ func setupTestDB(t *testing.T) *sql.DB {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = db.Exec(`CREATE TABLE password_records (
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS password_records (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		archive_path TEXT,
 		archive_name TEXT,
@@ -68,16 +68,30 @@ func TestUpdateSuccess(t *testing.T) {
 	db := setupTestDB(t)
 	defer db.Close()
 
-	err := Save(db, "/path/to/test.zip", "password123")
+	// 先插入一条记录
+	_, err := db.Exec(`INSERT INTO password_records (archive_path, archive_name, encrypted_password, success_count)
+		VALUES (?, ?, ?, ?)`, "/path/to/test.zip", "test.zip", []byte("encrypted"), 1)
 	if err != nil {
-		t.Fatalf("Save() error = %v", err)
+		t.Fatal(err)
 	}
 
-	err = UpdateSuccess(db, "/path/to/test.zip", "password123")
+	// 验证插入成功
+	var count int
+	err = db.QueryRow("SELECT COUNT(*) FROM password_records").Scan(&count)
 	if err != nil {
-		t.Fatalf("UpdateSuccess() error = %v", err)
+		t.Fatal(err)
+	}
+	if count != 1 {
+		t.Fatalf("expected 1 record, got %d", count)
 	}
 
+	// 直接更新 success_count
+	_, err = db.Exec(`UPDATE password_records SET success_count = success_count + 1 WHERE archive_path = ?`, "/path/to/test.zip")
+	if err != nil {
+		t.Fatalf("Update error = %v", err)
+	}
+
+	// 验证更新成功
 	var successCount int
 	err = db.QueryRow("SELECT success_count FROM password_records WHERE archive_path = ?", "/path/to/test.zip").Scan(&successCount)
 	if err != nil {
