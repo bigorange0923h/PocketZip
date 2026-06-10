@@ -48,6 +48,8 @@ func TestIsPasswordError(t *testing.T) {
 		want   bool
 	}{
 		{"english", "Wrong password", true},
+		{"english lower case", "error: password is incorrect", true},
+		{"7z encrypted data", "Data Error in encrypted file. Wrong password?", true},
 		{"chinese", "密码错误", true},
 		{"encrypted", "Cannot open encrypted archive", true},
 		{"normal error", "File not found", false},
@@ -60,4 +62,26 @@ func TestIsPasswordError(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestExtractResultErrorIncludesOutput(t *testing.T) {
+	result := ExtractResult{
+		Success: false,
+		ExitErr: errForTest("exit status 2"),
+		Output:  "ERROR: Wrong password",
+	}
+
+	err := result.Error()
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if got := err.Error(); got != "exit status 2: ERROR: Wrong password" {
+		t.Fatalf("unexpected error: %q", got)
+	}
+}
+
+type errForTest string
+
+func (e errForTest) Error() string {
+	return string(e)
 }

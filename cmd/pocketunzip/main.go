@@ -1,3 +1,5 @@
+//go:build legacycmd
+
 package main
 
 import (

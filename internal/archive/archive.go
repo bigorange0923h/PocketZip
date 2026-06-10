@@ -2,12 +2,15 @@ package archive
 
 import (
 	"bufio"
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 )
 
 type ExtractRequest struct {
@@ -22,6 +25,26 @@ type LogHandler func(line string)
 type ExtractResult struct {
 	Success bool
 	ExitErr error
+	Output  string
+}
+
+func (r ExtractResult) Error() error {
+	if r.Success {
+		return nil
+	}
+
+	output := strings.TrimSpace(r.Output)
+	if r.ExitErr == nil {
+		if output == "" {
+			return errors.New("extract failed")
+		}
+		return errors.New(output)
+	}
+
+	if output == "" {
+		return r.ExitErr
+	}
+	return fmt.Errorf("%w: %s", r.ExitErr, output)
 }
 
 func buildArgs(req ExtractRequest) []string {
@@ -34,6 +57,10 @@ func buildArgs(req ExtractRequest) []string {
 }
 
 func Extract(ctx context.Context, req ExtractRequest, onLog LogHandler) ExtractResult {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	// 自动创建输出目录
 	if err := os.MkdirAll(req.OutputDir, 0755); err != nil {
 		return ExtractResult{Success: false, ExitErr: err}
@@ -41,31 +68,69 @@ func Extract(ctx context.Context, req ExtractRequest, onLog LogHandler) ExtractR
 
 	args := buildArgs(req)
 	cmd := exec.CommandContext(ctx, req.SevenZipPath, args...)
-	stdout, _ := cmd.StdoutPipe()
-	stderr, _ := cmd.StderrPipe()
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return ExtractResult{Success: false, ExitErr: err}
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return ExtractResult{Success: false, ExitErr: err}
+	}
 
 	if err := cmd.Start(); err != nil {
 		return ExtractResult{Success: false, ExitErr: err}
 	}
 
-	go scanPipe(stdout, onLog)
-	go scanPipe(stderr, onLog)
+	var output bytes.Buffer
+	var outputMu sync.Mutex
+	var wg sync.WaitGroup
 
-	err := cmd.Wait()
-	return ExtractResult{Success: err == nil, ExitErr: err}
+	wg.Add(2)
+	go scanPipe(stdout, onLog, &output, &outputMu, &wg)
+	go scanPipe(stderr, onLog, &output, &outputMu, &wg)
+
+	err = cmd.Wait()
+	wg.Wait()
+
+	return ExtractResult{Success: err == nil, ExitErr: err, Output: output.String()}
 }
 
-func scanPipe(r io.Reader, onLog LogHandler) {
-	if onLog == nil || r == nil {
+func scanPipe(r io.Reader, onLog LogHandler, output *bytes.Buffer, outputMu *sync.Mutex, wg *sync.WaitGroup) {
+	defer wg.Done()
+	if r == nil {
 		return
 	}
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		onLog(scanner.Text())
+		line := scanner.Text()
+		if onLog != nil {
+			onLog(line)
+		}
+		outputMu.Lock()
+		output.WriteString(line)
+		output.WriteByte('\n')
+		outputMu.Unlock()
 	}
 }
 
 func IsPasswordError(output string) bool {
+	normalizedOutput := strings.ToLower(output)
+	passwordKeywords := []string{
+		"wrong password",
+		"password is incorrect",
+		"cannot open encrypted archive",
+		"can not open encrypted archive",
+		"data error in encrypted file",
+		"enter password",
+		"encrypted archive",
+		"密码错误",
+	}
+	for _, keyword := range passwordKeywords {
+		if strings.Contains(normalizedOutput, keyword) {
+			return true
+		}
+	}
+
 	keywords := []string{
 		"Wrong password",
 		"Wrong password?",

@@ -1,4 +1,4 @@
-package pocketunzip
+package main
 
 import "embed"
 

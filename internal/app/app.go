@@ -63,40 +63,84 @@ func (a *App) SelectDirectory() (string, error) {
 	})
 }
 
+func (a *App) extractLogger() func(string) {
+	return func(line string) {
+		if a.ctx != nil {
+			runtime.EventsEmit(a.ctx, "extract-log", line)
+		}
+	}
+}
+
+func (a *App) runExtract(archivePath, outputDir, passwordStr string) archive.ExtractResult {
+	return archive.Extract(a.ctx, archive.ExtractRequest{
+		SevenZipPath: a.sevenZipPath,
+		ArchivePath:  archivePath,
+		OutputDir:    outputDir,
+		Password:     passwordStr,
+	}, a.extractLogger())
+}
+
+func (a *App) recordExtract(archivePath, outputDir string, usedPassword bool, result archive.ExtractResult) {
+	h := history.ExtractHistory{
+		ArchivePath:  archivePath,
+		OutputDir:    outputDir,
+		Success:      result.Success,
+		UsedPassword: usedPassword,
+	}
+	if err := result.Error(); err != nil {
+		h.ErrorMessage = err.Error()
+	}
+	history.Record(a.db, h)
+}
+
 func (a *App) Extract(archivePath, outputDir string) error {
 	if outputDir == "" {
 		outputDir = defaultOutputDir(archivePath)
 	}
 
-	onLog := func(line string) {
-		runtime.EventsEmit(a.ctx, "extract-log", line)
+	result := a.runExtract(archivePath, outputDir, "")
+	if result.Success {
+		a.recordExtract(archivePath, outputDir, false, result)
+		return nil
 	}
 
-	result := archive.Extract(a.ctx, archive.ExtractRequest{
-		SevenZipPath: a.sevenZipPath,
-		ArchivePath:  archivePath,
-		OutputDir:    outputDir,
-	}, onLog)
-
-	h := history.ExtractHistory{
-		ArchivePath: archivePath,
-		OutputDir:   outputDir,
-		Success:     result.Success,
-	}
-	if result.ExitErr != nil {
-		h.ErrorMessage = result.ExitErr.Error()
-	}
-	history.Record(a.db, h)
-
-	if !result.Success && archive.IsPasswordError(h.ErrorMessage) {
-		return ErrPasswordRequired
+	if !archive.IsPasswordError(result.Output) {
+		a.recordExtract(archivePath, outputDir, false, result)
+		return result.Error()
 	}
 
-	if !result.Success {
-		return result.ExitErr
+	candidates, err := password.Match(a.db, archivePath)
+	if err != nil {
+		a.recordExtract(archivePath, outputDir, false, result)
+		return err
 	}
 
-	return nil
+	lastResult := result
+	usedCandidate := false
+	for _, candidate := range candidates {
+		if strings.TrimSpace(candidate) == "" {
+			continue
+		}
+
+		if a.ctx != nil {
+			runtime.EventsEmit(a.ctx, "extract-log", "Trying saved password candidate")
+		}
+
+		lastResult = a.runExtract(archivePath, outputDir, candidate)
+		usedCandidate = true
+		if lastResult.Success {
+			password.UpdateSuccess(a.db, archivePath, candidate)
+			a.recordExtract(archivePath, outputDir, true, lastResult)
+			return nil
+		}
+		if !archive.IsPasswordError(lastResult.Output) {
+			a.recordExtract(archivePath, outputDir, true, lastResult)
+			return lastResult.Error()
+		}
+	}
+
+	a.recordExtract(archivePath, outputDir, usedCandidate, lastResult)
+	return ErrPasswordRequired
 }
 
 func (a *App) GetPasswordCandidates(archivePath string) ([]string, error) {
@@ -316,37 +360,14 @@ func (a *App) ExtractWithPassword(archivePath, outputDir, passwordStr string) er
 		outputDir = defaultOutputDir(archivePath)
 	}
 
-	onLog := func(line string) {
-		runtime.EventsEmit(a.ctx, "extract-log", line)
-	}
-
-	result := archive.Extract(a.ctx, archive.ExtractRequest{
-		SevenZipPath: a.sevenZipPath,
-		ArchivePath:  archivePath,
-		OutputDir:    outputDir,
-		Password:     passwordStr,
-	}, onLog)
-
-	h := history.ExtractHistory{
-		ArchivePath:  archivePath,
-		OutputDir:    outputDir,
-		Success:      result.Success,
-		UsedPassword: true,
-	}
-	if result.ExitErr != nil {
-		h.ErrorMessage = result.ExitErr.Error()
-	}
-	history.Record(a.db, h)
-
+	result := a.runExtract(archivePath, outputDir, passwordStr)
+	a.recordExtract(archivePath, outputDir, true, result)
 	if result.Success {
 		password.UpdateSuccess(a.db, archivePath, passwordStr)
+		return nil
 	}
 
-	if !result.Success {
-		return result.ExitErr
-	}
-
-	return nil
+	return result.Error()
 }
 
 func defaultOutputDir(archivePath string) string {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useApp } from '../composables/useApp'
+import { OnFileDrop, OnFileDropOff } from '../../wailsjs/runtime/runtime'
 
 const { selectFile } = useApp()
 
@@ -10,11 +11,44 @@ const emit = defineEmits<{
 
 const isDragging = ref(false)
 const dragError = ref(false)
+const errorMessage = ref('')
+
+function acceptPath(path: string) {
+  if (!path) return
+  errorMessage.value = ''
+  dragError.value = false
+  emit('select', path)
+}
+
+function showError(message: string) {
+  errorMessage.value = message
+  dragError.value = true
+  setTimeout(() => {
+    dragError.value = false
+    errorMessage.value = ''
+  }, 3000)
+}
+
+onMounted(() => {
+  OnFileDrop((_x, _y, paths) => {
+    isDragging.value = false
+    if (paths && paths.length > 0) {
+      acceptPath(paths[0])
+      return
+    }
+    showError('未能读取拖拽文件路径，请点击选择文件')
+  }, true)
+})
+
+onUnmounted(() => {
+  OnFileDropOff()
+})
 
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
   isDragging.value = true
   dragError.value = false
+  errorMessage.value = ''
 }
 
 function handleDragLeave() {
@@ -25,28 +59,23 @@ function handleDrop(e: DragEvent) {
   e.preventDefault()
   isDragging.value = false
 
-  // WebView2 中 File 对象没有 path 属性，需要提示用户点击选择
   const files = e.dataTransfer?.files
-  if (files && files.length > 0) {
-    // 尝试获取路径（某些环境下可用）
-    const filePath = (files[0] as any).path
-    if (filePath) {
-      emit('select', filePath)
-    } else {
-      // 无法获取路径，提示用户点击选择
-      dragError.value = true
-      setTimeout(() => {
-        dragError.value = false
-      }, 3000)
-    }
+  const filePath = files && files.length > 0 ? (files[0] as any).path : ''
+  if (filePath) {
+    acceptPath(filePath)
   }
 }
 
 async function handleClick() {
   dragError.value = false
-  const path = await selectFile()
-  if (path) {
-    emit('select', path)
+  errorMessage.value = ''
+  try {
+    const path = await selectFile()
+    if (path) {
+      acceptPath(path)
+    }
+  } catch (err) {
+    showError(`打开文件选择器失败: ${err}`)
   }
 }
 </script>
@@ -55,6 +84,7 @@ async function handleClick() {
   <div
     class="file-selector"
     :class="{ dragging: isDragging, 'drag-error': dragError }"
+    style="--wails-drop-target: drop"
     @dragover="handleDragOver"
     @dragleave="handleDragLeave"
     @drop="handleDrop"
@@ -62,7 +92,7 @@ async function handleClick() {
   >
     <div class="icon">📦</div>
     <div v-if="dragError" class="error-text">
-      ⚠️ 拖拽无法获取文件路径，请点击选择文件
+      {{ errorMessage || '未能读取文件路径，请点击选择文件' }}
     </div>
     <div v-else class="text">拖拽压缩包到这里，或点击选择文件</div>
   </div>
