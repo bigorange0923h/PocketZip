@@ -9,6 +9,10 @@ export function ExtractWithPassword(arg1: string, arg2: string, arg3: string): P
   return window['go']['main']['App']['ExtractWithPassword'](arg1, arg2, arg3);
 }
 
+export function GetHistory(arg1: number): Promise<any[]> {
+  return window['go']['main']['App']['GetHistory'](arg1);
+}
+
 export function GetPasswordCandidates(arg1: string): Promise<string[]> {
   return window['go']['main']['App']['GetPasswordCandidates'](arg1);
 }

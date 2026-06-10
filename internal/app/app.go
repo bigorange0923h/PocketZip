@@ -93,6 +93,10 @@ func (a *App) SavePassword(archivePath, passwordStr string) error {
 	return password.Save(a.db, archivePath, passwordStr)
 }
 
+func (a *App) GetHistory(limit int) ([]history.ExtractHistory, error) {
+	return history.List(a.db, limit)
+}
+
 func (a *App) ExtractWithPassword(archivePath, outputDir, passwordStr string) error {
 	if outputDir == "" {
 		outputDir = defaultOutputDir(archivePath)

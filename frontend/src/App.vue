@@ -3,10 +3,12 @@ import { ref } from 'vue'
 import FileSelector from './components/FileSelector.vue'
 import LogPanel from './components/LogPanel.vue'
 import PasswordDialog from './components/PasswordDialog.vue'
+import HistoryList from './components/HistoryList.vue'
 import { useApp } from './composables/useApp'
 
 const { extract, extractWithPassword, getPasswordCandidates, onExtractLog } = useApp()
 
+const activeTab = ref<'extract' | 'history'>('extract')
 const selectedFile = ref('')
 const logs = ref<string[]>([])
 const isExtracting = ref(false)
@@ -77,28 +79,49 @@ function handlePasswordCancel() {
   <div id="app">
     <div class="container">
       <h1 class="title">PocketUnzip</h1>
-      <FileSelector @select="handleFileSelect" />
-      <div v-if="selectedFile" class="action-bar">
-        <div class="file-info">已选择: {{ selectedFile }}</div>
+      <div class="tabs">
         <button
-          class="extract-btn"
-          :disabled="isExtracting"
-          @click="handleExtract"
+          class="tab"
+          :class="{ active: activeTab === 'extract' }"
+          @click="activeTab = 'extract'"
         >
-          {{ isExtracting ? '解压中...' : '开始解压' }}
+          解压文件
+        </button>
+        <button
+          class="tab"
+          :class="{ active: activeTab === 'history' }"
+          @click="activeTab = 'history'"
+        >
+          解压历史
         </button>
       </div>
-      <LogPanel v-if="logs.length > 0" :logs="logs" />
-      <div v-if="extractResult" :class="['result', extractResult]">
-        {{ extractResult === 'success' ? '✅ 解压成功' : '❌ 解压失败' }}
+      <div v-if="activeTab === 'extract'" class="tab-content">
+        <FileSelector @select="handleFileSelect" />
+        <div v-if="selectedFile" class="action-bar">
+          <div class="file-info">已选择: {{ selectedFile }}</div>
+          <button
+            class="extract-btn"
+            :disabled="isExtracting"
+            @click="handleExtract"
+          >
+            {{ isExtracting ? '解压中...' : '开始解压' }}
+          </button>
+        </div>
+        <LogPanel v-if="logs.length > 0" :logs="logs" />
+        <div v-if="extractResult" :class="['result', extractResult]">
+          {{ extractResult === 'success' ? '✅ 解压成功' : '❌ 解压失败' }}
+        </div>
+        <PasswordDialog
+          v-if="showPasswordDialog"
+          :archive-path="selectedFile"
+          :candidates="passwordCandidates"
+          @submit="handlePasswordSubmit"
+          @cancel="handlePasswordCancel"
+        />
       </div>
-      <PasswordDialog
-        v-if="showPasswordDialog"
-        :archive-path="selectedFile"
-        :candidates="passwordCandidates"
-        @submit="handlePasswordSubmit"
-        @cancel="handlePasswordCancel"
-      />
+      <div v-else-if="activeTab === 'history'" class="tab-content">
+        <HistoryList />
+      </div>
     </div>
   </div>
 </template>
@@ -132,6 +155,47 @@ body {
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+}
+
+.tab-content {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .action-bar {
