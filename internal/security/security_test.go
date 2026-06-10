@@ -2,6 +2,24 @@ package security
 
 import "testing"
 
+func TestEncryptDecrypt(t *testing.T) {
+	plaintext := []byte("test password 123456")
+
+	encrypted, err := Encrypt(plaintext)
+	if err != nil {
+		t.Fatalf("Encrypt() error = %v", err)
+	}
+
+	decrypted, err := Decrypt(encrypted)
+	if err != nil {
+		t.Fatalf("Decrypt() error = %v", err)
+	}
+
+	if string(decrypted) != string(plaintext) {
+		t.Errorf("Decrypt() = %q, want %q", decrypted, plaintext)
+	}
+}
+
 func TestMaskPasswordArg(t *testing.T) {
 	tests := []struct {
 		name  string
