@@ -6,6 +6,11 @@
 /dist/
 *.exe
 *.test
+/pocketunzip
+
+# Allow 7z.exe and 7z.dll for distribution
+!third_party/7zip/7z.exe
+!third_party/7zip/7z.dll
 
 # Wails
 build/bin/
