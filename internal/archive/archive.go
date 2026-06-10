@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"os/exec"
+	"strings"
 )
 
 type ExtractRequest struct {
@@ -21,12 +22,17 @@ type ExtractResult struct {
 	ExitErr error
 }
 
-func Extract(ctx context.Context, req ExtractRequest, onLog LogHandler) ExtractResult {
-	args := []string{"x", req.ArchivePath, "-o" + req.OutputDir, "-y"}
+func buildArgs(req ExtractRequest) []string {
+	args := []string{"x", req.ArchivePath, "-o" + req.OutputDir}
 	if req.Password != "" {
 		args = append(args, "-p"+req.Password)
 	}
+	args = append(args, "-y")
+	return args
+}
 
+func Extract(ctx context.Context, req ExtractRequest, onLog LogHandler) ExtractResult {
+	args := buildArgs(req)
 	cmd := exec.CommandContext(ctx, req.SevenZipPath, args...)
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
@@ -50,4 +56,19 @@ func scanPipe(r io.Reader, onLog LogHandler) {
 	for scanner.Scan() {
 		onLog(scanner.Text())
 	}
+}
+
+func IsPasswordError(output string) bool {
+	keywords := []string{
+		"Wrong password",
+		"Wrong password?",
+		"密码错误",
+		"Cannot open encrypted archive",
+	}
+	for _, keyword := range keywords {
+		if strings.Contains(output, keyword) {
+			return true
+		}
+	}
+	return false
 }
