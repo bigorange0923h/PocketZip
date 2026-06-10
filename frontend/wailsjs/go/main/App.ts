@@ -5,6 +5,18 @@ export function Extract(arg1: string, arg2: string): Promise<void> {
   return window['go']['main']['App']['Extract'](arg1, arg2);
 }
 
+export function ExtractWithPassword(arg1: string, arg2: string, arg3: string): Promise<void> {
+  return window['go']['main']['App']['ExtractWithPassword'](arg1, arg2, arg3);
+}
+
+export function GetPasswordCandidates(arg1: string): Promise<string[]> {
+  return window['go']['main']['App']['GetPasswordCandidates'](arg1);
+}
+
+export function SavePassword(arg1: string, arg2: string): Promise<void> {
+  return window['go']['main']['App']['SavePassword'](arg1, arg2);
+}
+
 export function SelectDirectory(): Promise<string> {
   return window['go']['main']['App']['SelectDirectory']();
 }

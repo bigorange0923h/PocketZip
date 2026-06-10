@@ -2,14 +2,17 @@
 import { ref } from 'vue'
 import FileSelector from './components/FileSelector.vue'
 import LogPanel from './components/LogPanel.vue'
+import PasswordDialog from './components/PasswordDialog.vue'
 import { useApp } from './composables/useApp'
 
-const { extract, onExtractLog } = useApp()
+const { extract, extractWithPassword, getPasswordCandidates, onExtractLog } = useApp()
 
 const selectedFile = ref('')
 const logs = ref<string[]>([])
 const isExtracting = ref(false)
 const extractResult = ref<'success' | 'error' | null>(null)
+const showPasswordDialog = ref(false)
+const passwordCandidates = ref<string[]>([])
 
 function handleFileSelect(path: string) {
   selectedFile.value = path
@@ -31,6 +34,31 @@ async function handleExtract() {
   try {
     await extract(selectedFile.value, '')
     extractResult.value = 'success'
+  } catch (err: any) {
+    if (err?.message?.includes('password required') || String(err).includes('password required')) {
+      passwordCandidates.value = await getPasswordCandidates(selectedFile.value)
+      showPasswordDialog.value = true
+    } else {
+      extractResult.value = 'error'
+      logs.value.push(`错误: ${err}`)
+    }
+  } finally {
+    isExtracting.value = false
+    unsub()
+  }
+}
+
+async function handlePasswordSubmit(password: string) {
+  showPasswordDialog.value = false
+  isExtracting.value = true
+
+  const unsub = onExtractLog((line) => {
+    logs.value.push(line)
+  })
+
+  try {
+    await extractWithPassword(selectedFile.value, '', password)
+    extractResult.value = 'success'
   } catch (err) {
     extractResult.value = 'error'
     logs.value.push(`错误: ${err}`)
@@ -38,6 +66,10 @@ async function handleExtract() {
     isExtracting.value = false
     unsub()
   }
+}
+
+function handlePasswordCancel() {
+  showPasswordDialog.value = false
 }
 </script>
 
@@ -60,6 +92,13 @@ async function handleExtract() {
       <div v-if="extractResult" :class="['result', extractResult]">
         {{ extractResult === 'success' ? '✅ 解压成功' : '❌ 解压失败' }}
       </div>
+      <PasswordDialog
+        v-if="showPasswordDialog"
+        :archive-path="selectedFile"
+        :candidates="passwordCandidates"
+        @submit="handlePasswordSubmit"
+        @cancel="handlePasswordCancel"
+      />
     </div>
   </div>
 </template>

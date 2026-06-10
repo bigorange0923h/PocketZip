@@ -1,4 +1,4 @@
-import { SelectFile, SelectDirectory, Extract } from '../../wailsjs/go/main/App'
+import { SelectFile, SelectDirectory, Extract, ExtractWithPassword, GetPasswordCandidates, SavePassword } from '../../wailsjs/go/main/App'
 import { EventsOn } from '../../wailsjs/runtime/runtime'
 
 export function useApp() {
@@ -14,6 +14,18 @@ export function useApp() {
     return await Extract(archivePath, outputDir)
   }
 
+  async function extractWithPassword(archivePath: string, outputDir: string, password: string): Promise<void> {
+    return await ExtractWithPassword(archivePath, outputDir, password)
+  }
+
+  async function getPasswordCandidates(archivePath: string): Promise<string[]> {
+    return await GetPasswordCandidates(archivePath)
+  }
+
+  async function savePassword(archivePath: string, password: string): Promise<void> {
+    return await SavePassword(archivePath, password)
+  }
+
   function onExtractLog(callback: (line: string) => void) {
     return EventsOn('extract-log', callback)
   }
@@ -22,6 +34,9 @@ export function useApp() {
     selectFile,
     selectDirectory,
     extract,
+    extractWithPassword,
+    getPasswordCandidates,
+    savePassword,
     onExtractLog,
   }
 }
