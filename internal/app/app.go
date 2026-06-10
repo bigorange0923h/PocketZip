@@ -9,6 +9,7 @@ import (
 
 	"pocketunzip/internal/archive"
 	"pocketunzip/internal/history"
+	"pocketunzip/internal/password"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -75,6 +76,52 @@ func (a *App) Extract(archivePath, outputDir string) error {
 
 	if !result.Success && archive.IsPasswordError(h.ErrorMessage) {
 		return ErrPasswordRequired
+	}
+
+	if !result.Success {
+		return result.ExitErr
+	}
+
+	return nil
+}
+
+func (a *App) GetPasswordCandidates(archivePath string) ([]string, error) {
+	return password.Match(a.db, archivePath)
+}
+
+func (a *App) SavePassword(archivePath, passwordStr string) error {
+	return password.Save(a.db, archivePath, passwordStr)
+}
+
+func (a *App) ExtractWithPassword(archivePath, outputDir, passwordStr string) error {
+	if outputDir == "" {
+		outputDir = defaultOutputDir(archivePath)
+	}
+
+	onLog := func(line string) {
+		runtime.EventsEmit(a.ctx, "extract-log", line)
+	}
+
+	result := archive.Extract(a.ctx, archive.ExtractRequest{
+		SevenZipPath: a.sevenZipPath,
+		ArchivePath:  archivePath,
+		OutputDir:    outputDir,
+		Password:     passwordStr,
+	}, onLog)
+
+	h := history.ExtractHistory{
+		ArchivePath:  archivePath,
+		OutputDir:    outputDir,
+		Success:      result.Success,
+		UsedPassword: true,
+	}
+	if result.ExitErr != nil {
+		h.ErrorMessage = result.ExitErr.Error()
+	}
+	history.Record(a.db, h)
+
+	if result.Success {
+		password.UpdateSuccess(a.db, archivePath, passwordStr)
 	}
 
 	if !result.Success {
