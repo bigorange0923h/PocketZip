@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useApp } from '../composables/useApp'
+
+const { selectFile } = useApp()
 
 const emit = defineEmits<{
   (e: 'select', path: string): void
@@ -21,14 +24,15 @@ function handleDrop(e: DragEvent) {
   isDragging.value = false
   const files = e.dataTransfer?.files
   if (files && files.length > 0) {
-    // Wails 桌面环境下 File 对象有 path 属性
     emit('select', (files[0] as any).path)
   }
 }
 
-function handleClick() {
-  // Wails 文件选择需要调用后端
-  // 暂时留空，等 App Service 实现后再补
+async function handleClick() {
+  const path = await selectFile()
+  if (path) {
+    emit('select', path)
+  }
 }
 </script>
 
