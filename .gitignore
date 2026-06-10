@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Go
+/bin/
+/dist/
+*.exe
+*.test
+
+# Wails
+build/bin/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Local data
+*.db
+*.db-shm
+*.db-wal
+
+# IDE
+.idea/
+.vscode/
+
+# Runtime
+logs/
