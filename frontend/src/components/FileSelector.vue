@@ -101,8 +101,8 @@ async function handleClick() {
 <style scoped>
 .file-selector {
   border: 2px dashed rgba(99, 102, 241, 0.3);
-  border-radius: 16px;
-  padding: 48px;
+  border-radius: 14px;
+  padding: 36px 24px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -113,7 +113,7 @@ async function handleClick() {
 .file-selector.dragging {
   border-color: #6366f1;
   background: rgba(99, 102, 241, 0.05);
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
 }
 
 .file-selector.drag-error {
@@ -122,17 +122,17 @@ async function handleClick() {
 }
 
 .icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 40px;
+  margin-bottom: 12px;
 }
 
 .text {
   color: #94a3b8;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .error-text {
   color: #f43f5e;
-  font-size: 14px;
+  font-size: 13px;
 }
 </style>

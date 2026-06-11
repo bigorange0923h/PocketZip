@@ -6,6 +6,10 @@ export function BatchExtract(arg1, arg2) {
   return window['go']['app']['App']['BatchExtract'](arg1, arg2);
 }
 
+export function Compress(arg1, arg2, arg3, arg4) {
+  return window['go']['app']['App']['Compress'](arg1, arg2, arg3, arg4);
+}
+
 export function DeletePasswordRecord(arg1) {
   return window['go']['app']['App']['DeletePasswordRecord'](arg1);
 }
@@ -84,6 +88,18 @@ export function SelectFile() {
 
 export function SelectFiles() {
   return window['go']['app']['App']['SelectFiles']();
+}
+
+export function SelectFilesForCompress() {
+  return window['go']['app']['App']['SelectFilesForCompress']();
+}
+
+export function SelectFolderForCompress() {
+  return window['go']['app']['App']['SelectFolderForCompress']();
+}
+
+export function SelectSavePath(arg1) {
+  return window['go']['app']['App']['SelectSavePath'](arg1);
 }
 
 export function SetAppConfig(arg1, arg2) {

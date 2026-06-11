@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -364,6 +365,69 @@ func (a *App) ExtractWithPassword(archivePath, outputDir, passwordStr string) er
 	a.recordExtract(archivePath, outputDir, true, result)
 	if result.Success {
 		password.UpdateSuccess(a.db, archivePath, passwordStr)
+		return nil
+	}
+
+	return result.Error()
+}
+
+// SelectFilesForCompress 选择要压缩的文件（任意文件，非压缩包过滤）
+func (a *App) SelectFilesForCompress() ([]string, error) {
+	return runtime.OpenMultipleFilesDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "选择要压缩的文件",
+	})
+}
+
+// SelectFolderForCompress 选择要压缩的文件夹
+func (a *App) SelectFolderForCompress() (string, error) {
+	return runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "选择要压缩的文件夹",
+	})
+}
+
+// SelectSavePath 选择压缩包保存路径
+func (a *App) SelectSavePath(defaultName string) (string, error) {
+	return runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:           "保存压缩包",
+		DefaultFilename: defaultName,
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "压缩包 (*.zip, *.7z, *.tar, *.gz)",
+				Pattern:     "*.zip;*.7z;*.tar;*.gz",
+			},
+		},
+	})
+}
+
+// Compress 压缩文件
+func (a *App) Compress(files []string, archivePath, format, passwordStr string) error {
+	if len(files) == 0 {
+		return fmt.Errorf("no files selected")
+	}
+
+	if archivePath == "" {
+		return fmt.Errorf("archive path is required")
+	}
+
+	if format == "" {
+		format = "zip"
+	}
+
+	compressLogger := func(line string) {
+		if a.ctx != nil {
+			runtime.EventsEmit(a.ctx, "compress-log", line)
+		}
+	}
+
+	result := archive.Compress(a.ctx, archive.CompressRequest{
+		SevenZipPath: a.sevenZipPath,
+		Files:        files,
+		ArchivePath:  archivePath,
+		Format:       format,
+		Password:     passwordStr,
+	}, compressLogger)
+
+	if result.Success {
 		return nil
 	}
 

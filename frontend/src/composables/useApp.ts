@@ -18,7 +18,11 @@ import {
   GetTheme,
   SetTheme,
   GetExtractStrategies,
-  SaveExtractStrategy
+  SaveExtractStrategy,
+  Compress,
+  SelectFilesForCompress,
+  SelectFolderForCompress,
+  SelectSavePath
 } from '../../wailsjs/go/app/App'
 import { EventsOn } from '../../wailsjs/runtime/runtime'
 
@@ -103,8 +107,30 @@ export function useApp() {
     return await SaveExtractStrategy(strategy)
   }
 
+  // 压缩相关
+  async function compress(files: string[], archivePath: string, format: string, password: string): Promise<void> {
+    return await Compress(files, archivePath, format, password)
+  }
+
+  async function selectFilesForCompress(): Promise<string[]> {
+    return await SelectFilesForCompress()
+  }
+
+  async function selectFolderForCompress(): Promise<string> {
+    return await SelectFolderForCompress()
+  }
+
+  async function selectSavePath(defaultName: string): Promise<string> {
+    return await SelectSavePath(defaultName)
+  }
+
+  // 事件监听
   function onExtractLog(callback: (line: string) => void) {
     return EventsOn('extract-log', callback)
+  }
+
+  function onCompressLog(callback: (line: string) => void) {
+    return EventsOn('compress-log', callback)
   }
 
   return {
@@ -128,6 +154,11 @@ export function useApp() {
     setTheme,
     getExtractStrategies,
     saveExtractStrategy,
+    compress,
+    selectFilesForCompress,
+    selectFolderForCompress,
+    selectSavePath,
     onExtractLog,
+    onCompressLog,
   }
 }

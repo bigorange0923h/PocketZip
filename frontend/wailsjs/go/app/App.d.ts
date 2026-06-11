@@ -7,6 +7,8 @@ import {archive} from '../models';
 
 export function BatchExtract(arg1:Array<string>,arg2:string):Promise<Array<app.BatchExtractResult>>;
 
+export function Compress(arg1:Array<string>,arg2:string,arg3:string,arg4:string):Promise<void>;
+
 export function DeletePasswordRecord(arg1:number):Promise<void>;
 
 export function Extract(arg1:string,arg2:string):Promise<void>;
@@ -46,6 +48,12 @@ export function SelectDirectory():Promise<string>;
 export function SelectFile():Promise<string>;
 
 export function SelectFiles():Promise<Array<string>>;
+
+export function SelectFilesForCompress():Promise<Array<string>>;
+
+export function SelectFolderForCompress():Promise<string>;
+
+export function SelectSavePath(arg1:string):Promise<string>;
 
 export function SetAppConfig(arg1:string,arg2:string):Promise<void>;
 
