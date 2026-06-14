@@ -67,14 +67,14 @@ export namespace archive {
 export namespace history {
 	
 	export class ExtractHistory {
-	    ID: number;
-	    ArchivePath: string;
-	    OutputDir: string;
-	    Success: boolean;
-	    UsedPassword: boolean;
-	    ErrorMessage: string;
+	    id: number;
+	    archivePath: string;
+	    outputDir: string;
+	    success: boolean;
+	    usedPassword: boolean;
+	    errorMessage: string;
 	    // Go type: time
-	    CreatedAt: any;
+	    createdAt: any;
 	
 	    static createFrom(source: any = {}) {
 	        return new ExtractHistory(source);
@@ -82,13 +82,13 @@ export namespace history {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ID = source["ID"];
-	        this.ArchivePath = source["ArchivePath"];
-	        this.OutputDir = source["OutputDir"];
-	        this.Success = source["Success"];
-	        this.UsedPassword = source["UsedPassword"];
-	        this.ErrorMessage = source["ErrorMessage"];
-	        this.CreatedAt = this.convertValues(source["CreatedAt"], null);
+	        this.id = source["id"];
+	        this.archivePath = source["archivePath"];
+	        this.outputDir = source["outputDir"];
+	        this.success = source["success"];
+	        this.usedPassword = source["usedPassword"];
+	        this.errorMessage = source["errorMessage"];
+	        this.createdAt = this.convertValues(source["createdAt"], null);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -115,16 +115,15 @@ export namespace history {
 export namespace password {
 	
 	export class PasswordRecord {
-	    ID: number;
-	    ArchivePath: string;
-	    ArchiveName: string;
-	    ArchiveHash: string;
-	    EncryptedPassword: number[];
-	    SuccessCount: number;
+	    id: number;
+	    archivePath: string;
+	    archiveName: string;
+	    archiveHash: string;
+	    successCount: number;
 	    // Go type: time
-	    LastUsedAt: any;
+	    lastUsedAt: any;
 	    // Go type: time
-	    CreatedAt: any;
+	    createdAt: any;
 	
 	    static createFrom(source: any = {}) {
 	        return new PasswordRecord(source);
@@ -132,14 +131,13 @@ export namespace password {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ID = source["ID"];
-	        this.ArchivePath = source["ArchivePath"];
-	        this.ArchiveName = source["ArchiveName"];
-	        this.ArchiveHash = source["ArchiveHash"];
-	        this.EncryptedPassword = source["EncryptedPassword"];
-	        this.SuccessCount = source["SuccessCount"];
-	        this.LastUsedAt = this.convertValues(source["LastUsedAt"], null);
-	        this.CreatedAt = this.convertValues(source["CreatedAt"], null);
+	        this.id = source["id"];
+	        this.archivePath = source["archivePath"];
+	        this.archiveName = source["archiveName"];
+	        this.archiveHash = source["archiveHash"];
+	        this.successCount = source["successCount"];
+	        this.lastUsedAt = this.convertValues(source["lastUsedAt"], null);
+	        this.createdAt = this.convertValues(source["createdAt"], null);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

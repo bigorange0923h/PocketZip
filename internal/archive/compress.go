@@ -3,6 +3,7 @@ package archive
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -32,9 +33,9 @@ func (r CompressResult) Error() error {
 	output := strings.TrimSpace(r.Output)
 	if r.ExitErr == nil {
 		if output == "" {
-			return fmt.Errorf("compress failed")
+			return errors.New("compress failed")
 		}
-		return fmt.Errorf(output)
+		return errors.New(output)
 	}
 
 	if output == "" {

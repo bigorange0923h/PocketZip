@@ -6,13 +6,13 @@ import (
 )
 
 type ExtractHistory struct {
-	ID           int64
-	ArchivePath  string
-	OutputDir    string
-	Success      bool
-	UsedPassword bool
-	ErrorMessage string
-	CreatedAt    time.Time
+	ID           int64     `json:"id"`
+	ArchivePath  string    `json:"archivePath"`
+	OutputDir    string    `json:"outputDir"`
+	Success      bool      `json:"success"`
+	UsedPassword bool      `json:"usedPassword"`
+	ErrorMessage string    `json:"errorMessage"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 func Record(db *sql.DB, h ExtractHistory) error {

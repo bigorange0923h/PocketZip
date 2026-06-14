@@ -9,14 +9,14 @@ import (
 )
 
 type PasswordRecord struct {
-	ID                int64
-	ArchivePath       string
-	ArchiveName       string
-	ArchiveHash       string
-	EncryptedPassword []byte
-	SuccessCount      int
-	LastUsedAt        time.Time
-	CreatedAt         time.Time
+	ID                int64     `json:"id"`
+	ArchivePath       string    `json:"archivePath"`
+	ArchiveName       string    `json:"archiveName"`
+	ArchiveHash       string    `json:"archiveHash"`
+	EncryptedPassword []byte    `json:"-"`
+	SuccessCount      int       `json:"successCount"`
+	LastUsedAt        time.Time `json:"lastUsedAt"`
+	CreatedAt         time.Time `json:"createdAt"`
 }
 
 func Save(db *sql.DB, archivePath, password string) error {
