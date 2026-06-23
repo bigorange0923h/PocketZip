@@ -1,4 +1,4 @@
-# PocketUnzip Windows build script
+# PocketZip Windows build script
 
-Write-Host "Building PocketUnzip..."
+Write-Host "Building PocketZip..."
 wails build -platform windows/amd64

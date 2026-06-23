@@ -1,4 +1,4 @@
-# PocketUnzip file selector fix
+# PocketZip file selector fix
 
 Date: 2026-06-11
 

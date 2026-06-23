@@ -1,4 +1,4 @@
-# PocketUnzip 安全、可靠性与可维护性改进设计
+# PocketZip 安全、可靠性与可维护性改进设计
 
 ## 目标
 
@@ -187,7 +187,7 @@ Go 自动化测试覆盖：
 最终验证命令：
 
 ```bash
-GOCACHE=/tmp/pocketunzip-go-cache go test ./...
+GOCACHE=/tmp/pocketzip-go-cache go test ./...
 cd frontend && npm run build
 ```
 

@@ -1,10 +1,10 @@
-# PocketUnzip password extraction fix
+# PocketZip password extraction fix
 
 Date: 2026-06-11
 
 ## Problem
 
-PocketUnzip could fail to detect password-protected archives correctly.
+PocketZip could fail to detect password-protected archives correctly.
 
 The archive layer streamed 7z stdout/stderr to the frontend log panel, but it did not keep that output in the returned result. The app layer only stored `ExitErr.Error()`, which is usually a generic value such as `exit status 2`. As a result, `archive.IsPasswordError` often had no real 7z message to inspect, so the app could return a generic extraction failure instead of `password required`.
 

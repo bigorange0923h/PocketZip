@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"pocketunzip/internal/archive"
-	"pocketunzip/internal/history"
-	"pocketunzip/internal/password"
+	"pocketzip/internal/archive"
+	"pocketzip/internal/history"
+	"pocketzip/internal/password"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )

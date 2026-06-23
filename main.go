@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"pocketunzip/internal/app"
-	"pocketunzip/internal/db"
+	"pocketzip/internal/app"
+	"pocketzip/internal/db"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -45,7 +45,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	appDir := filepath.Join(configDir, "PocketUnzip")
+	appDir := filepath.Join(configDir, "PocketZip")
 	if err := os.MkdirAll(appDir, 0755); err != nil {
 		log.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func main() {
 	a := app.NewApp(find7Zip(), database)
 
 	err = wails.Run(&options.App{
-		Title:  "PocketUnzip",
+		Title:  "PocketZip",
 		Width:  1024,
 		Height: 768,
 		Debug: options.Debug{

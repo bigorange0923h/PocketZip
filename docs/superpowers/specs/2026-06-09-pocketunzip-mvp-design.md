@@ -1,4 +1,4 @@
-# PocketUnzip MVP 设计文档
+# PocketZip MVP 设计文档
 
 **日期**：2026-06-09  
 **状态**：已批准  
@@ -59,8 +59,8 @@
 ## 3. 项目结构
 
 ```text
-PocketUnzip/
-├── cmd/pocketunzip/
+PocketZip/
+├── cmd/pocketzip/
 │   └── main.go                    # 程序入口
 ├── internal/
 │   ├── app/

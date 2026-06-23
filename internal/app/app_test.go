@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"pocketunzip/internal/db"
-	"pocketunzip/internal/history"
-	"pocketunzip/internal/password"
+	"pocketzip/internal/db"
+	"pocketzip/internal/history"
+	"pocketzip/internal/password"
 )
 
 func TestMain(m *testing.M) {
-	if os.Getenv("POCKETUNZIP_FAKE_7Z") == "1" {
+	if os.Getenv("POCKETZIP_FAKE_7Z") == "1" {
 		runFake7z()
 		return
 	}
@@ -33,9 +33,9 @@ func runFake7z() {
 }
 
 func TestExtractTriesSavedPasswordCandidates(t *testing.T) {
-	t.Setenv("POCKETUNZIP_FAKE_7Z", "1")
+	t.Setenv("POCKETZIP_FAKE_7Z", "1")
 
-	database, err := db.Init(filepath.Join(t.TempDir(), "pocketunzip-test.db"))
+	database, err := db.Init(filepath.Join(t.TempDir(), "pocketzip-test.db"))
 	if err != nil {
 		t.Fatal(err)
 	}

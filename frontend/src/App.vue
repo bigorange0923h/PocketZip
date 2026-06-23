@@ -321,7 +321,7 @@ function handleCancelOperation() {
             <span class="icon-emoji">📦</span>
           </span>
           <div class="app-info">
-            <span class="app-name">PocketUnzip</span>
+            <span class="app-name">PocketZip</span>
             <span class="app-subtitle">文件压缩 / 解压工具</span>
           </div>
         </div>

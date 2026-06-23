@@ -1,8 +1,8 @@
-# PocketUnzip MVP 实现计划
+# PocketZip MVP 实现计划
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 实现 PocketUnzip MVP 完整闭环，包括核心解压、密码管理、历史记录和打包分发。
+**Goal:** 实现 PocketZip MVP 完整闭环，包括核心解压、密码管理、历史记录和打包分发。
 
 **Architecture:** Go + Wails v2 桌面应用，7z.exe 作为解压内核，SQLite 存储密码和历史，DPAPI 加密密码。前端 Vue + TypeScript，3D Elements 风格。
 
@@ -13,8 +13,8 @@
 ## 文件结构
 
 ```
-PocketUnzip/
-├── cmd/pocketunzip/
+PocketZip/
+├── cmd/pocketzip/
 │   └── main.go                    # 程序入口
 ├── internal/
 │   ├── app/
@@ -71,7 +71,7 @@ PocketUnzip/
 
 **Files:**
 - Create: `go.mod`
-- Create: `cmd/pocketunzip/main.go`
+- Create: `cmd/pocketzip/main.go`
 - Create: `frontend/package.json`
 - Create: `frontend/index.html`
 - Create: `frontend/vite.config.ts`
@@ -82,8 +82,8 @@ PocketUnzip/
 - [ ] **Step 1: 初始化 Go 模块**
 
 ```bash
-cd /Users/alvin.huang/GolandProjects/PocketUnzip
-go mod init pocketunzip
+cd /Users/alvin.huang/GolandProjects/PocketZip
+go mod init pocketzip
 ```
 
 - [ ] **Step 2: 安装 Wails CLI**
@@ -104,7 +104,7 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-	"pocketunzip/internal/app"
+	"pocketzip/internal/app"
 )
 
 //go:embed all:frontend/dist
@@ -114,7 +114,7 @@ func main() {
 	app := app.NewApp()
 
 	err := wails.Run(&options.App{
-		Title:  "PocketUnzip",
+		Title:  "PocketZip",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
@@ -135,7 +135,7 @@ func main() {
 
 ```json
 {
-  "name": "pocketunzip-frontend",
+  "name": "pocketzip-frontend",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -215,7 +215,7 @@ createApp(App).mount('#app')
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const message = ref('PocketUnzip MVP')
+const message = ref('PocketZip MVP')
 </script>
 
 <template>
@@ -249,7 +249,7 @@ body {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PocketUnzip</title>
+    <title>PocketZip</title>
   </head>
   <body>
     <div id="app"></div>
@@ -289,11 +289,11 @@ npm run build
 - [ ] **Step 12: 验证 Wails 开发模式**
 
 ```bash
-cd /Users/alvin.huang/GolandProjects/PocketUnzip
+cd /Users/alvin.huang/GolandProjects/PocketZip
 wails dev
 ```
 
-Expected: 浏览器打开 http://localhost:5173 显示 "PocketUnzip MVP"
+Expected: 浏览器打开 http://localhost:5173 显示 "PocketZip MVP"
 
 - [ ] **Step 13: Commit**
 
@@ -361,7 +361,7 @@ func TestBuildArgs_WithPassword(t *testing.T) {
 - [ ] **Step 2: 运行测试确认失败**
 
 ```bash
-cd /Users/alvin.huang/GolandProjects/PocketUnzip
+cd /Users/alvin.huang/GolandProjects/PocketZip
 go test ./internal/archive/ -v -run TestBuildArgs
 ```
 
@@ -649,7 +649,7 @@ func createTables(db *sql.DB) error {
 }
 
 func DefaultDBPath(configDir string) string {
-	return filepath.Join(configDir, "pocketunzip.db")
+	return filepath.Join(configDir, "pocketzip.db")
 }
 ```
 
@@ -966,7 +966,7 @@ function handleFileSelect(path: string) {
 <template>
   <div id="app">
     <div class="container">
-      <h1 class="title">PocketUnzip</h1>
+      <h1 class="title">PocketZip</h1>
       <FileSelector @select="handleFileSelect" />
       <div v-if="selectedFile" class="selected-file">
         已选择: {{ selectedFile }}
@@ -1050,8 +1050,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"pocketunzip/internal/archive"
-	"pocketunzip/internal/history"
+	"pocketzip/internal/archive"
+	"pocketzip/internal/history"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -1156,8 +1156,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"pocketunzip/internal/archive"
-	"pocketunzip/internal/history"
+	"pocketzip/internal/archive"
+	"pocketzip/internal/history"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -1352,7 +1352,7 @@ async function handleExtract() {
 <template>
   <div id="app">
     <div class="container">
-      <h1 class="title">PocketUnzip</h1>
+      <h1 class="title">PocketZip</h1>
       <FileSelector @select="handleFileSelect" />
       <div v-if="selectedFile" class="action-bar">
         <div class="file-info">已选择: {{ selectedFile }}</div>
@@ -1553,7 +1553,7 @@ git commit -m "feat: connect frontend to App Service with extract and log displa
 ### Task 9: 更新 main.go 连接所有模块
 
 **Files:**
-- Modify: `cmd/pocketunzip/main.go`
+- Modify: `cmd/pocketzip/main.go`
 
 - [ ] **Step 1: 更新 main.go**
 
@@ -1569,8 +1569,8 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-	"pocketunzip/internal/app"
-	"pocketunzip/internal/db"
+	"pocketzip/internal/app"
+	"pocketzip/internal/db"
 )
 
 //go:embed all:frontend/dist
@@ -1581,7 +1581,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	configDir = filepath.Join(configDir, "PocketUnzip")
+	configDir = filepath.Join(configDir, "PocketZip")
 	os.MkdirAll(configDir, 0755)
 
 	database, err := db.Init(db.DefaultDBPath(configDir))
@@ -1595,7 +1595,7 @@ func main() {
 	app := app.NewApp(sevenZipPath, database)
 
 	err = wails.Run(&options.App{
-		Title:  "PocketUnzip",
+		Title:  "PocketZip",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
@@ -1640,7 +1640,7 @@ func find7Zip() string {
 - [ ] **Step 2: 运行编译检查**
 
 ```bash
-go build ./cmd/pocketunzip/
+go build ./cmd/pocketzip/
 ```
 
 Expected: 成功编译
@@ -1648,7 +1648,7 @@ Expected: 成功编译
 - [ ] **Step 3: Commit**
 
 ```bash
-git add cmd/pocketunzip/
+git add cmd/pocketzip/
 git commit -m "feat: connect main.go with all modules"
 ```
 
@@ -1669,7 +1669,7 @@ cp /tmp/test.zip third_party/testdata/
 - [ ] **Step 2: 运行完整程序**
 
 ```bash
-cd /Users/alvin.huang/GolandProjects/PocketUnzip
+cd /Users/alvin.huang/GolandProjects/PocketZip
 wails dev
 ```
 
@@ -1884,7 +1884,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"pocketunzip/internal/security"
+	"pocketzip/internal/security"
 )
 
 type PasswordRecord struct {
@@ -2423,7 +2423,7 @@ function handlePasswordCancel() {
 <template>
   <div id="app">
     <div class="container">
-      <h1 class="title">PocketUnzip</h1>
+      <h1 class="title">PocketZip</h1>
       <FileSelector @select="handleFileSelect" />
       <div v-if="selectedFile" class="action-bar">
         <div class="file-info">已选择: {{ selectedFile }}</div>
@@ -2848,7 +2848,7 @@ function handlePasswordCancel() {
 <template>
   <div id="app">
     <div class="container">
-      <h1 class="title">PocketUnzip</h1>
+      <h1 class="title">PocketZip</h1>
       <div class="tabs">
         <button
           class="tab"
@@ -3096,7 +3096,7 @@ Create: `scripts/build.sh`
 ```bash
 #!/bin/bash
 
-echo "Building PocketUnzip..."
+echo "Building PocketZip..."
 
 # 构建前端
 cd frontend
@@ -3119,36 +3119,36 @@ Create: `scripts/installer.nsi`
 ```nsis
 !include "MUI2.nsh"
 
-Name "PocketUnzip"
-OutFile "PocketUnzip-Setup.exe"
-InstallDir "$PROGRAMFILES\PocketUnzip"
+Name "PocketZip"
+OutFile "PocketZip-Setup.exe"
+InstallDir "$PROGRAMFILES\PocketZip"
 
 Page directory
 Page instfiles
 
 Section "Install"
   SetOutPath "$INSTDIR"
-  File "build/bin/PocketUnzip.exe"
+  File "build/bin/PocketZip.exe"
   File "build/bin/7z.exe"
   File "build/bin/7z.dll"
   
-  CreateDirectory "$SMPROGRAMS\PocketUnzip"
-  CreateShortCut "$SMPROGRAMS\PocketUnzip\PocketUnzip.lnk" "$INSTDIR\PocketUnzip.exe"
-  CreateShortCut "$DESKTOP\PocketUnzip.lnk" "$INSTDIR\PocketUnzip.exe"
+  CreateDirectory "$SMPROGRAMS\PocketZip"
+  CreateShortCut "$SMPROGRAMS\PocketZip\PocketZip.lnk" "$INSTDIR\PocketZip.exe"
+  CreateShortCut "$DESKTOP\PocketZip.lnk" "$INSTDIR\PocketZip.exe"
   
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 SectionEnd
 
 Section "Uninstall"
-  Delete "$INSTDIR\PocketUnzip.exe"
+  Delete "$INSTDIR\PocketZip.exe"
   Delete "$INSTDIR\7z.exe"
   Delete "$INSTDIR\7z.dll"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"
   
-  Delete "$SMPROGRAMS\PocketUnzip\PocketUnzip.lnk"
-  RMDir "$SMPROGRAMS\PocketUnzip"
-  Delete "$DESKTOP\PocketUnzip.lnk"
+  Delete "$SMPROGRAMS\PocketZip\PocketZip.lnk"
+  RMDir "$SMPROGRAMS\PocketZip"
+  Delete "$DESKTOP\PocketZip.lnk"
 SectionEnd
 ```
 
@@ -3170,12 +3170,12 @@ chmod +x scripts/build.sh
 ./scripts/build.sh
 ```
 
-Expected: 成功生成 build/bin/PocketUnzip.exe
+Expected: 成功生成 build/bin/PocketZip.exe
 
 - [ ] **Step 2: 运行打包后的程序**
 
 ```bash
-./build/bin/PocketUnzip.exe
+./build/bin/PocketZip.exe
 ```
 
 Expected: 程序正常启动，功能完整

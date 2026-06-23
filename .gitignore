@@ -6,7 +6,7 @@
 /dist/
 *.exe
 *.test
-/pocketunzip
+/pocketzip
 
 # Allow 7z.exe and 7z.dll for distribution
 !third_party/7zip/7z.exe

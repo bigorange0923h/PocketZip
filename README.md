@@ -1,6 +1,6 @@
-# PocketUnzip
+# PocketZip
 
-PocketUnzip 是一款面向 Windows 的轻量解压工具，第一阶段使用 `7z.exe` 作为解压内核，重点提供：常见格式解压、密码记忆、自动尝试历史密码、解压历史和实时日志。
+PocketZip 是一款面向 Windows 的轻量解压工具，第一阶段使用 `7z.exe` 作为解压内核，重点提供：常见格式解压、密码记忆、自动尝试历史密码、解压历史和实时日志。
 
 ## 技术路线
 
@@ -24,8 +24,8 @@ PocketUnzip 是一款面向 Windows 的轻量解压工具，第一阶段使用 `
 ## 项目目录
 
 ```text
-PocketUnzip/
-├─ cmd/pocketunzip/          # 程序入口
+PocketZip/
+├─ cmd/pocketzip/          # 程序入口
 ├─ internal/app/             # 应用编排层
 ├─ internal/archive/         # 7z 解压适配层
 ├─ internal/password/        # 密码匹配与保存

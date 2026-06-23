@@ -1,4 +1,4 @@
-# PocketUnzip project issues TODO
+# PocketZip project issues TODO
 
 Date: 2026-06-14
 

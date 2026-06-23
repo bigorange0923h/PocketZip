@@ -63,5 +63,5 @@ func createTables(db *sql.DB) error {
 }
 
 func DefaultDBPath(configDir string) string {
-	return filepath.Join(configDir, "pocketunzip.db")
+	return filepath.Join(configDir, "pocketzip.db")
 }

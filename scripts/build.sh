@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Building PocketUnzip..."
+echo "Building PocketZip..."
 
 # 构建前端
 cd frontend

@@ -1,4 +1,4 @@
-# PocketUnzip Wails entrypoint fix
+# PocketZip Wails entrypoint fix
 
 Date: 2026-06-11
 
@@ -10,13 +10,13 @@ Date: 2026-06-11
 This version of %1 is not compatible with the version of Windows you're running.
 ```
 
-The production build also produced `build/bin/PocketUnzip.exe`, but the file was only about 145 KB and could not be launched.
+The production build also produced `build/bin/PocketZip.exe`, but the file was only about 145 KB and could not be launched.
 
 ## Root Cause
 
-Wails builds the package in the project root by default. The project root was `package pocketunzip` and only contained embedded frontend assets. The actual application entrypoint lived in `cmd/pocketunzip/main.go`.
+Wails builds the package in the project root by default. The project root was `package pocketzip` and only contained embedded frontend assets. The actual application entrypoint lived in `cmd/pocketzip/main.go`.
 
-Because the root package was not `package main`, Wails effectively built a Go package archive and wrote it to `PocketUnzip.exe`. The file started with:
+Because the root package was not `package main`, Wails effectively built a Go package archive and wrote it to `PocketZip.exe`. The file started with:
 
 ```text
 !<arch>
@@ -33,8 +33,8 @@ Windows correctly rejected that file as not being a valid executable for the OS.
 ## Fix
 
 - Added a root-level `main.go` with the Wails application startup code.
-- Changed root `assets.go` from `package pocketunzip` to `package main`, so embedded frontend assets are available to the root Wails app.
-- Marked the old `cmd/pocketunzip/main.go` with `//go:build legacycmd` so it no longer participates in normal builds.
+- Changed root `assets.go` from `package pocketzip` to `package main`, so embedded frontend assets are available to the root Wails app.
+- Marked the old `cmd/pocketzip/main.go` with `//go:build legacycmd` so it no longer participates in normal builds.
 - Kept the 7z discovery logic in the new root entrypoint.
 
 ## Verification

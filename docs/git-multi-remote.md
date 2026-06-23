@@ -6,10 +6,10 @@
 
 ```bash
 # 添加 origin（主仓库 - GitHub）
-git remote add origin https://github.com/BigOrange/PocketUnzip.git
+git remote add origin https://github.com/BigOrange/PocketZip.git
 
 # 添加 backup（国内备份 - Gitee）
-git remote add backup https://gitee.com/bigorange_gitee/PocketUnzip.git
+git remote add backup https://gitee.com/bigorange_gitee/PocketZip.git
 ```
 
 ## 二、查看远程源配置
@@ -21,10 +21,10 @@ git remote -v
 预期输出：
 
 ```
-backup  https://gitee.com/bigorange_gitee/PocketUnzip.git (fetch)
-backup  https://gitee.com/bigorange_gitee/PocketUnzip.git (push)
-origin  https://github.com/BigOrange/PocketUnzip.git (fetch)
-origin  https://github.com/BigOrange/PocketUnzip.git (push)
+backup  https://gitee.com/bigorange_gitee/PocketZip.git (fetch)
+backup  https://gitee.com/bigorange_gitee/PocketZip.git (push)
+origin  https://github.com/BigOrange/PocketZip.git (fetch)
+origin  https://github.com/BigOrange/PocketZip.git (push)
 ```
 
 ## 三、同时推送到两个远程源
@@ -40,8 +40,8 @@ git push backup main
 
 ```bash
 # 给 origin 添加第二个 push 地址
-git remote set-url --add --push origin https://github.com/BigOrange/PocketUnzip.git
-git remote set-url --add --push origin https://gitee.com/bigorange_gitee/PocketUnzip.git
+git remote set-url --add --push origin https://github.com/BigOrange/PocketZip.git
+git remote set-url --add --push origin https://gitee.com/bigorange_gitee/PocketZip.git
 ```
 
 验证配置：
@@ -53,9 +53,9 @@ git remote -v
 预期输出：
 
 ```
-origin  https://github.com/BigOrange/PocketUnzip.git (fetch)
-origin  https://github.com/BigOrange/PocketUnzip.git (push)
-origin  https://gitee.com/bigorange_gitee/PocketUnzip.git (push)
+origin  https://github.com/BigOrange/PocketZip.git (fetch)
+origin  https://github.com/BigOrange/PocketZip.git (push)
+origin  https://gitee.com/bigorange_gitee/PocketZip.git (push)
 ```
 
 之后只需：

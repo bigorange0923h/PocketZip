@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"pocketunzip/internal/security"
+	"pocketzip/internal/security"
 )
 
 type PasswordRecord struct {

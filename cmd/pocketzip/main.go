@@ -10,9 +10,9 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-	"pocketunzip"
-	"pocketunzip/internal/app"
-	"pocketunzip/internal/db"
+	"pocketzip"
+	"pocketzip/internal/app"
+	"pocketzip/internal/db"
 )
 
 // find7Zip 查找 7z 可执行文件的路径
@@ -65,7 +65,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	appDir := filepath.Join(configDir, "PocketUnzip")
+	appDir := filepath.Join(configDir, "PocketZip")
 	if err := os.MkdirAll(appDir, 0755); err != nil {
 		log.Fatal(err)
 	}
@@ -81,11 +81,11 @@ func main() {
 	a := app.NewApp(sevenZipPath, database)
 
 	err = wails.Run(&options.App{
-		Title:  "PocketUnzip",
+		Title:  "PocketZip",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
-			Assets: pocketunzip.Assets,
+			Assets: pocketzip.Assets,
 		},
 		OnStartup: a.Startup,
 		Bind: []interface{}{

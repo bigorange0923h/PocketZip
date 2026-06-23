@@ -1,4 +1,4 @@
-module pocketunzip
+module pocketzip
 
 go 1.25.0
 
